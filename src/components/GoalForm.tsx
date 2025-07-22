@@ -18,16 +18,22 @@ export function GoalForm({ onClose, initial }: Props) {
   const [form, setForm] = useState({
     name: initial?.name ?? "",
     frequency: initial?.frequency ?? ("daily" as "daily" | "multi"),
-    benchmark: initial?.benchmark ?? 0,
+    benchmark: initial?.benchmark?.toString() ?? "",
     icon: initial?.icon ?? "🎯",
     color: initial?.color ?? "#3b82f6",
   });
 
   const submit = () => {
     if (isEdit) {
-      updateGoal(initial!.id, form);
+      updateGoal(initial!.id, {
+        ...form,
+        benchmark: form.benchmark === "" ? undefined : +form.benchmark,
+      });
     } else {
-      addGoal(form);
+      addGoal({
+        ...form,
+        benchmark: form.benchmark === "" ? undefined : +form.benchmark,
+      });
     }
     onClose();
   };
@@ -95,8 +101,9 @@ export function GoalForm({ onClose, initial }: Props) {
                   className={inputCls}
                   placeholder="Benchmark"
                   value={form.benchmark}
+                  min={0}
                   onChange={(e) =>
-                    setForm({ ...form, benchmark: +e.target.value })
+                    setForm({ ...form, benchmark: e.target.value })
                   }
                 />
 
