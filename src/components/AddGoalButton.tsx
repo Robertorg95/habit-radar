@@ -1,5 +1,3 @@
-// src/components/AddGoalButton.tsx
-// ----------------------------------------------------------------
 import { useState } from "react";
 import { GoalForm } from "./GoalForm";
 

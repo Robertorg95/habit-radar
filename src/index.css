@@ -8,7 +8,7 @@
   transition: max-height 0.3s ease;
 }
 .chart-enter-active {
-  max-height: 500px; /* suficiente para la gráfica */
+  max-height: 500px;
 }
 
 .react-calendar-heatmap rect {
@@ -17,13 +17,13 @@
 }
 .react-calendar-heatmap text {
   font-size: 9px;
-  fill: #6b7280;     /* gray‑500 */
+  fill: #6b7280;
 }
 
-.color-empty { fill: #e5e7eb; }  /* gray-200 */
-.color-half  { fill: #4ade80; }  /* green-400 */
-.color-full  { fill: #2563eb; }  /* blue-600 */
-.dark .color-empty { fill: #374151 !important; } /* gray‑700 en dark */
+.color-empty { fill: #e5e7eb; }
+.color-half  { fill: #4ade80; }
+.color-full  { fill: #2563eb; }
+.dark .color-empty { fill: #374151 !important; }
 
 .btn-inc,
 .btn-dec {
@@ -36,7 +36,7 @@
   @apply bg-rose-500 active:bg-rose-600;
 }
 
-/* Tab activo (placeholder) */
+
 .tab-active {
   @apply border-b-2 border-blue-600 font-medium;
 }
@@ -44,8 +44,7 @@
 li.relative {
   @apply rounded-lg;
 }
-/* El UL ya no tendrá bullets por la clase list-none del <li>,
-   pero por si acaso: */
+
 ul.list-none {
   list-style-type: none;
 }

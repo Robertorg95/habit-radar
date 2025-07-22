@@ -1,5 +1,3 @@
-// src/components/GoalForm.tsx
-// --------------------------------------------------------------------------
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment, useState } from "react";
 import { useGoals } from "../hooks/useGoals";

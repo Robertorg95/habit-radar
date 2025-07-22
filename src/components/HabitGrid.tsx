@@ -5,9 +5,9 @@ import dayjs from "dayjs";
 interface Props {
   goalId: string;
   color?: string;
-  rows?: number;         // cantidad de filas (semanas)
-  cell?: number;         // tamaño del cuadrado (px)
-  gap?: number;          // espacio entre celdas (px)
+  rows?: number;
+  cell?: number;
+  gap?: number;
   showWeekdays?: boolean;
 }
 

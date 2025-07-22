@@ -1,4 +1,3 @@
-// ---------------------------------------------------------------------------
 import { Line } from "react-chartjs-2";
 import type { ChartOptions } from "chart.js";
 import {
@@ -16,9 +15,9 @@ ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip)
 
 interface Props {
   goalId: string;
-  maxPoints?: number;     // recorta serie (Weekly=7)
+  maxPoints?: number;
   lineColor?: string;
-  showLabels?: boolean;   // muestra etiquetas X
+  showLabels?: boolean;
 }
 
 export function ProgressChart({
@@ -42,14 +41,14 @@ export function ProgressChart({
 
   slice.forEach((_, i) => {
     acc += slice[i].delta;
-    labels.push(String(i + 1)); // “1…N”
+    labels.push(String(i + 1));
     data.push(acc);
   });
 
   const border = lineColor;
   const fill   =
     lineColor.startsWith("#") && lineColor.length === 7
-      ? `${lineColor}55`            // hex → ~33 % opacidad
+      ? `${lineColor}55`
       : lineColor;     
 
   const chartData = {
@@ -66,8 +65,8 @@ export function ProgressChart({
   };
 
     const isDark = document.documentElement.classList.contains("dark");
-    const axisColor = isDark ? "#9ca3af" : "#6b7280";   // gray-400 / gray-500
-    const gridColor = isDark ? "#374151" : "#e5e7eb";   // gray-700 / gray-200
+    const axisColor = isDark ? "#9ca3af" : "#6b7280";
+    const gridColor = isDark ? "#374151" : "#e5e7eb";
 
     const options: ChartOptions<"line"> = {
     responsive: true,
@@ -85,7 +84,7 @@ export function ProgressChart({
             display: showLabels,
             autoSkip: !showLabels,
             maxRotation: 0,
-            color: axisColor,        // 👈
+            color: axisColor,
             },
         },
         },
@@ -93,15 +92,15 @@ export function ProgressChart({
 
   // Scroll horizontal solo si se muestra etiquetas y hay >14 puntos
   const needScroll = showLabels && slice.length > 14;
-  const baseWidth = 7 * 47;              // 7 columnas × cell (47 px)
-  const dynamicWidth = needScroll ? slice.length * 40 : baseWidth;   // ≥ baseWidth
+  const baseWidth = 7 * 47;
+  const dynamicWidth = needScroll ? slice.length * 40 : baseWidth; 
 
     return (
     <div className={needScroll ? "overflow-x-auto" : ""}>
         {/* ► alto fijo (h-56 ≈ 288 px) + ancho dinámico */}
         <div
-        className="h-56"                  // alto
-        style={{ width: dynamicWidth }}   // ancho
+        className="h-56"
+        style={{ width: dynamicWidth }}
         >
         <Line data={chartData} options={options} />
         </div>

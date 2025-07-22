@@ -1,6 +1,6 @@
 import { GoalsPanel } from "./components/GoalsPanel";
-import "./index.css";                 // tailwind
+import "./index.css";
 
 export default function App() {
-  return <GoalsPanel />;              // la lista moderna con FAB
+  return <GoalsPanel />;
 }

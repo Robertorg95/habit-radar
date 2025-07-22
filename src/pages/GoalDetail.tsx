@@ -1,5 +1,3 @@
-// src/pages/GoalDetail.tsx
-// --------------------------------------------------------------------------
 import { Tab } from "@headlessui/react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -191,7 +189,6 @@ export default function GoalDetail() {
   );
 }
 
-/* ── Componente auxiliar ─────────────────────────────────────────────── */
 function MetricCard({
   label,
   value,

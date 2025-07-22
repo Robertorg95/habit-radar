@@ -1,4 +1,3 @@
-// src/pages/Home.tsx
 import { Link } from "react-router-dom";
 import { useGoals } from "../hooks/useGoals";
 import { GoalCard } from "../components/GoalCard";

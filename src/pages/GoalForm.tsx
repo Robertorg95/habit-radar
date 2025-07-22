@@ -18,7 +18,7 @@ export default function GoalForm() {
   const [frequency, setFrequency] = useState<"daily" | "multi">("daily");
   const [benchmark, setBenchmark] = useState<number | "">("");
   const [icon, setIcon] = useState(icons[0].value);
-  const [color, setColor] = useState("#3b82f6"); // azul por defecto
+  const [color, setColor] = useState("#3b82f6");
 
   const save = async () => {
     if (!name.trim()) return;

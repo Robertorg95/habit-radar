@@ -1,17 +1,8 @@
-// src/hooks/useGoals.ts
-// -------------------------------------------------------------------
-// Hook central para metas (goals) + eventos con Dexie & live-query.
-// -------------------------------------------------------------------
 import { useCallback } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db";
 import dayjs from "dayjs";
 
-/**  
- * ✏️ TIPADO — ajusta aquí si tu `db.ts` expone otra forma:  
- *   - Si allí ya defines `export interface Goal`, IMPORTA esa misma.  
- *   - Si no, mantén esta definición (coincide con los campos en tus tablas).  
- */
 export interface Goal {
   id: string;
   name: string;
@@ -22,13 +13,6 @@ export interface Goal {
   createdAt: Date;
 }
 
-/**
- * Hook `useGoals`
- *  - `goals`     → lista reactiva (Dexie LiveQuery)
- *  - `addGoal`   → crea meta nueva
- *  - `addEvent`  → registra +1 / –1
- *  - `deleteGoal`→ borra meta + eventos
- */
 export function useGoals() {
   /* 1️⃣  Metas en vivo ─ cada cambio en `db.goals` refresca el array */
   const goals = useLiveQuery(() => db.goals.toArray(), [], []) ?? [];
@@ -43,7 +27,7 @@ export function useGoals() {
           id,
           createdAt: new Date(),
           ...data,
-        } as any /* 👉 evita que el tipo de Dexie se queje */
+        } as any
       );
     },
     []
@@ -97,6 +81,5 @@ export function useGoals() {
     });
   }, []);
 
-  //------------------------------------------------------------------
   return { goals, addGoal, updateGoal, addEvent, deleteGoal };
 }
