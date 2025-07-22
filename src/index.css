@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.chart-enter {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.chart-enter-active {
+  max-height: 500px; /* suficiente para la gráfica */
+}
+
+.react-calendar-heatmap rect {
+  width: 12px;
+  height: 12px;
+}
+.react-calendar-heatmap text {
+  font-size: 9px;
+  fill: #6b7280;     /* gray‑500 */
+}
+
+.color-empty { fill: #e5e7eb; }  /* gray-200 */
+.color-half  { fill: #4ade80; }  /* green-400 */
+.color-full  { fill: #2563eb; }  /* blue-600 */
+.dark .color-empty { fill: #374151 !important; } /* gray‑700 en dark */
+
+.btn-inc,
+.btn-dec {
+  @apply rounded-lg py-1 text-white font-bold select-none;
+}
+.btn-inc {
+  @apply bg-emerald-500 active:bg-emerald-600;
+}
+.btn-dec {
+  @apply bg-rose-500 active:bg-rose-600;
+}
+
+/* Tab activo (placeholder) */
+.tab-active {
+  @apply border-b-2 border-blue-600 font-medium;
+}
+
+li.relative {
+  @apply rounded-lg;
+}
+/* El UL ya no tendrá bullets por la clase list-none del <li>,
+   pero por si acaso: */
+ul.list-none {
+  list-style-type: none;
+}
