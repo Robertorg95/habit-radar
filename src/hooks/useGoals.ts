@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db";
 import dayjs from "dayjs";
+import { useEffect } from "react";
 
 export interface Goal {
   id: string;
@@ -79,6 +80,43 @@ export function useGoals() {
       await db.goals.delete(goalId);
       await db.events.where("goalId").equals(goalId).delete();
     });
+  }, []);
+
+    useEffect(() => {
+    /** corre una vez por sesión */
+    (async () => {
+      const today = dayjs().startOf("day");
+
+      // Recorre todas las metas
+      const all = await db.goals.toArray();
+      for (const g of all) {
+        // último evento o fecha de creación
+        const last = await db.events
+          .where("goalId")
+          .equals(g.id)
+          .last();
+
+        let cursor = dayjs(last?.timestamp ?? g.createdAt).startOf("day");
+
+        while (cursor.isBefore(today, "day")) {
+          cursor = cursor.add(1, "day");
+          // ¿ya existe evento ese día?
+          const exists = await db.events
+            .where({ goalId: g.id })
+            .filter((e) => dayjs(e.timestamp).isSame(cursor, "day"))
+            .count();
+
+          if (!exists) {
+            await db.events.add({
+              id: crypto.randomUUID(),
+              goalId: g.id,
+              delta: -1,
+              timestamp: cursor.toDate(),
+            });
+          }
+        }
+      }
+    })();
   }, []);
 
   return { goals, addGoal, updateGoal, addEvent, deleteGoal };
