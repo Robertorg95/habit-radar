@@ -86,6 +86,7 @@ export function useGoals() {
     /** corre una vez por sesión */
     (async () => {
       const today = dayjs().startOf("day");
+      const yesterday = today.subtract(1, "day");
 
       // Recorre todas las metas
       const all = await db.goals.toArray();
@@ -98,24 +99,24 @@ export function useGoals() {
 
         let cursor = dayjs(last?.timestamp ?? g.createdAt).startOf("day");
 
-        while (cursor.isBefore(today, "day")) {
+        while (cursor.isBefore(yesterday, "day")) {
           cursor = cursor.add(1, "day");
-          // ¿ya existe evento ese día?
+
           const exists = await db.events
             .where({ goalId: g.id })
             .filter((e) => dayjs(e.timestamp).isSame(cursor, "day"))
             .count();
 
-          if (!exists) {
-            await db.events.add({
-              id: crypto.randomUUID(),
-              goalId: g.id,
-              delta: -1,
-              timestamp: cursor.toDate(),
-            });
-          }
+        if (!exists) {
+          await db.events.add({
+            id: crypto.randomUUID(),
+            goalId: g.id,
+            delta: -1,                // un único –1
+            timestamp: cursor.toDate(),
+          });
         }
       }
+    }
     })();
   }, []);
 
