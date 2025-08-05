@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db";
 import dayjs from "dayjs";
-import { useEffect } from "react";
 
 export interface Goal {
   id: string;
@@ -14,111 +13,68 @@ export interface Goal {
   createdAt: Date;
 }
 
+/* -------------------------------------------------------------------------- */
+/*  HOOK PRINCIPAL                                                            */
+/* -------------------------------------------------------------------------- */
 export function useGoals() {
-  /* 1️⃣  Metas en vivo ─ cada cambio en `db.goals` refresca el array */
+  /* 1️⃣  Metas reactivas */
   const goals = useLiveQuery(() => db.goals.toArray(), [], []) ?? [];
 
-  /* 2️⃣  Crear meta nueva */
+  /* 2️⃣  CRUD Metas -------------------------------------------------------- */
   const addGoal = useCallback(
     async (data: Omit<Goal, "id" | "createdAt">) => {
-      const id = crypto.randomUUID();
-
-      await db.goals.add(
-        {
-          id,
-          createdAt: new Date(),
-          ...data,
-        } as any
-      );
+      await db.goals.add({
+        id: crypto.randomUUID(),
+        createdAt: new Date(),
+        ...data,
+      } as any);
     },
     []
   );
 
   const updateGoal = useCallback(
-    async (goalId: string, changes: Partial<Omit<Goal, "id">>) => {
-        await db.goals.update(goalId, changes);
+    (goalId: string, changes: Partial<Omit<Goal, "id">>) =>
+      db.goals.update(goalId, changes),
+    []
+  );
+
+  const deleteGoal = useCallback(
+    async (goalId: string) => {
+      await db.transaction("rw", db.goals, db.events, async () => {
+        await db.goals.delete(goalId);
+        await db.events.where("goalId").equals(goalId).delete();
+      });
     },
-    [],
-    );
+    []
+  );
 
-
-    const addEvent = useCallback(
+  /* 3️⃣  Eventos ----------------------------------------------------------- */
+  const addEvent = useCallback(
     async (goalId: string, delta: number) => {
-        const goal = await db.goals.get(goalId);
-        if (!goal) return;
+      const goal = await db.goals.get(goalId);
+      if (!goal) return;
 
-        // ► 1. Valida regla "Daily"
-        if (goal.frequency === "daily") {
+      /* Regla “daily”: un solo movimiento al día */
+      if (goal.frequency === "daily") {
         const todayKey = dayjs().format("YYYY-MM-DD");
+        const todayEvt = await db.events
+          .where({ goalId })
+          .filter((e) => dayjs(e.timestamp).format("YYYY-MM-DD") === todayKey)
+          .first();
+        if (todayEvt) return; // ya existe algo hoy
+      }
 
-        const alreadyToday = await db.events
-            .where({ goalId })
-            .filter((e) => dayjs(e.timestamp).format("YYYY-MM-DD") === todayKey)
-            .first();
-
-        if (alreadyToday) {
-            // Ya existe un movimiento hoy ⇒ cancela
-            return;
-        }
-        }
-
-        // ► 2. Guarda el evento
-        await db.events.add({
+      await db.events.add({
         id: crypto.randomUUID(),
         goalId,
         delta,
         timestamp: new Date(),
-        });
+      });
     },
-    [],
-    );
+    []
+  );
 
-
-  /* 4️⃣  Borrar meta + cascada de eventos */
-  const deleteGoal = useCallback(async (goalId: string) => {
-    await db.transaction("rw", db.goals, db.events, async () => {
-      await db.goals.delete(goalId);
-      await db.events.where("goalId").equals(goalId).delete();
-    });
-  }, []);
-
-    useEffect(() => {
-    /** corre una vez por sesión */
-    (async () => {
-      const today = dayjs().startOf("day");
-      const yesterday = today.subtract(1, "day");
-
-      // Recorre todas las metas
-      const all = await db.goals.toArray();
-      for (const g of all) {
-        // último evento o fecha de creación
-        const last = await db.events
-          .where("goalId")
-          .equals(g.id)
-          .last();
-
-        let cursor = dayjs(last?.timestamp ?? g.createdAt).startOf("day");
-
-        while (cursor.isBefore(yesterday, "day")) {
-          cursor = cursor.add(1, "day");
-
-          const exists = await db.events
-            .where({ goalId: g.id })
-            .filter((e) => dayjs(e.timestamp).isSame(cursor, "day"))
-            .count();
-
-        if (!exists) {
-          await db.events.add({
-            id: crypto.randomUUID(),
-            goalId: g.id,
-            delta: -1,                // un único –1
-            timestamp: cursor.toDate(),
-          });
-        }
-      }
-    }
-    })();
-  }, []);
-
+  /* ---------------------------------------------------------------------- */
   return { goals, addGoal, updateGoal, addEvent, deleteGoal };
 }
+
