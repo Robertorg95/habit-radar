@@ -104,7 +104,6 @@ export default function GoalDetail() {
             <div className="h-56 overflow-auto">
               <HabitGrid
                 goalId={goal.id}
-                createdAt={goal.createdAt}
                 color={goal.color}
                 rows={8}
                 cell={47}
@@ -122,7 +121,6 @@ export default function GoalDetail() {
             <div className="h-56 overflow-auto">
               <HabitGrid
                 goalId={goal.id}
-                createdAt={goal.createdAt}
                 color={goal.color}
                 rows={8}
                 cell={47}
