@@ -1,3 +1,5 @@
+// src/components/HabitGrid.tsx
+// ---------------------------------------------------------------
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db";
 import dayjs from "dayjs";
@@ -5,15 +7,21 @@ import dayjs from "dayjs";
 interface Props {
   goalId: string;
   color?: string;
-  rows?: number;        // filas (semanas) visibles
-  cell?: number;        // tamaño celda en px
-  gap?: number;         // separación en px
+  rows?: number;     // semanas visibles
+  cell?: number;     // tamaño del cuadro (px)
+  gap?: number;      // espacio entre cuadros (px)
   showWeekdays?: boolean;
 }
 
 const WEEKDAYS = ["L", "M", "M", "J", "V", "S", "D"]; // Lunes → Domingo
 
-export function HabitGrid({
+// Lunes de la semana de 'd' (sin plugin)
+function startOfMondayWeek(d: dayjs.Dayjs) {
+  const dowMon0 = (d.day() + 6) % 7; // L=0, ... D=6
+  return d.startOf("day").subtract(dowMon0, "day");
+}
+
+export default function HabitGrid({
   goalId,
   color = "#22c55e",
   rows = 8,
@@ -21,14 +29,18 @@ export function HabitGrid({
   gap = 3,
   showWeekdays = true,
 }: Props) {
-  // meta + eventos
-  const goal = useLiveQuery(() => db.goals.get(goalId), [goalId]);
+  // Meta + eventos en vivo
+  const goal =
+    useLiveQuery(() => db.goals.get(goalId), [goalId]) ?? undefined;
+
   const events =
-    useLiveQuery(() => db.events.where({ goalId }).toArray(), [goalId]) ?? [];
+    useLiveQuery(() => db.events.where("goalId").equals(goalId).toArray(), [
+      goalId,
+    ]) ?? [];
 
   if (!goal) return null;
 
-  // suma por día (YYYY-MM-DD)
+  // Sumarización por día
   const byDay = new Map<string, number>();
   for (const e of events) {
     const k = dayjs(e.timestamp).format("YYYY-MM-DD");
@@ -38,45 +50,52 @@ export function HabitGrid({
   const today = dayjs().startOf("day");
   const created = dayjs(goal.createdAt).startOf("day");
 
-  const total = rows * 7;
+  // Lunes de la semana actual
+  const thisWeekMon = startOfMondayWeek(today);
 
-  // ⛑️ sin plugin: max(created, today - (total-1))
-  const candidate = today.subtract(total - 1, "day");
-  const windowStart = created.isAfter(candidate, "day") ? created : candidate;
+  // Lunes del bloque más antiguo que se verá (rows semanas hacia atrás)
+  const firstWeekMon = thisWeekMon.subtract(rows - 1, "week");
 
-  const toCol = (d: dayjs.Dayjs) => (d.day() + 6) % 7; // Lun=0…Dom=6
+  // Construye las celdas (row = semana, col = día)
+  const cells: {
+    key: string;
+    bg: string;
+  }[] = [];
 
-  type State = "pre" | "empty" | "pos" | "neg";
-  const cells: { key: string; state: State }[] = Array(total);
+  for (let w = 0; w < rows; w++) {
+    const weekMon = firstWeekMon.add(w, "week");
+    for (let d = 0; d < 7; d++) {
+      const date = weekMon.add(d, "day");
+      const key = date.format("YYYY-MM-DD");
 
-  for (let i = 0; i < total; i++) {
-    const d = windowStart.add(i, "day");
-    const key = d.format("YYYY-MM-DD");
+      let bg = "transparent";
 
-    let state: State = "empty";
-    if (d.isBefore(created, "day")) {
-      state = "pre";
-    } else {
-      const v = byDay.get(key);
-      if (v != null) state = v > 0 ? "pos" : "neg";
+      if (date.isAfter(today)) {
+        // día futuro dentro de la semana actual → vacío
+        bg = "transparent";
+      } else if (date.isBefore(created)) {
+        // antes de crear la meta → gris muy claro
+        bg = "#f1f5f9";
+      } else {
+        const sum = byDay.get(key) ?? 0;
+        if (sum > 0) bg = color;        // positivo
+        else if (sum < 0) bg = "#9ca3af"; // negativo
+        else bg = "#e5e7eb";              // pasado sin evento (miss)
+      }
+
+      cells.push({ key, bg });
     }
-
-    const col = toCol(d);
-    const row = Math.floor(i / 7);
-    cells[row * 7 + col] = { key, state };
   }
-
-  const square = { width: cell, height: cell };
 
   return (
     <div>
       {showWeekdays && (
         <div
-          className="mb-1 grid w-max select-none text-[10px] font-medium text-gray-500 dark:text-gray-400"
+          className="mb-1 grid w-max text-[11px] font-medium text-gray-500"
           style={{ gridTemplateColumns: `repeat(7, ${cell}px)`, gap }}
         >
-          {WEEKDAYS.map((d, i) => (
-            <span key={`${d}-${i}`} className="text-center" style={{ width: cell }}>
+          {WEEKDAYS.map((d) => (
+            <span key={d} className="text-center" style={{ width: cell }}>
               {d}
             </span>
           ))}
@@ -87,25 +106,19 @@ export function HabitGrid({
         className="grid w-max"
         style={{ gridTemplateColumns: `repeat(7, ${cell}px)`, gap }}
       >
-        {cells.map((c, idx) => {
-          const bg =
-            c.state === "pos"
-              ? color
-              : c.state === "neg"
-              ? "#9ca3af"
-              : "#e5e7eb";
-          return (
-            <div
-              key={c?.key ?? `empty-${idx}`}
-              title={c?.key}
-              style={{ ...square, backgroundColor: bg, borderRadius: 3 }}
-              className={c.state === "pre" ? "opacity-40" : ""}
-            />
-          );
-        })}
+        {cells.map(({ key, bg }) => (
+          <div
+            key={key}
+            title={key}
+            style={{
+              width: cell,
+              height: cell,
+              backgroundColor: bg,
+              borderRadius: 3,
+            }}
+          />
+        ))}
       </div>
     </div>
   );
 }
-
-
