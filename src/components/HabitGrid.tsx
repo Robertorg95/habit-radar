@@ -19,7 +19,6 @@ export default function HabitGrid({
   cols = 7,
   cell = 16,
   gap = 3,
-  showWeekdays = false, // ya no mostramos encabezado de días
 }: Props) {
   // Meta y eventos en vivo
   const goal = useLiveQuery(() => db.goals.get(goalId), [goalId]) ?? undefined;
