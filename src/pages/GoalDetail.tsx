@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../db";
 import { ProgressChart } from "../components/ProgressChart";
-import { HabitGrid } from "../components/HabitGrid";
+import HabitGrid from "../components/HabitGrid";
 import { GoalForm } from "../components/GoalForm";
 import dayjs from "dayjs";
 import { useState } from "react";
@@ -105,7 +105,7 @@ export default function GoalDetail() {
               <HabitGrid
                 goalId={goal.id}
                 color={goal.color}
-                rows={8}
+                cols={7}
                 cell={47}
                 gap={5}
                 showWeekdays
@@ -122,7 +122,7 @@ export default function GoalDetail() {
               <HabitGrid
                 goalId={goal.id}
                 color={goal.color}
-                rows={8}
+                cols={7}
                 cell={47}
                 gap={5}
                 showWeekdays
